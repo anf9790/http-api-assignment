@@ -6,6 +6,89 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
+    // Handling all potential responses from the user that we have accounted for.
+    const handleResponse = (xhr) => {
+      // Getting the type of response to be displayed.
+      const type = xhr.getResponseHeader('content-type');
+      // Grabbing the 'content' section of the page to print the responses in.
+      const content = document.querySelector('#content');
+      
+      switch(xhr.status) {
+        case 200: //if success
+          content.innerHTML = `<b>Success</b>`;
+          break;
+        case 400: //if bad request
+          content.innerHTML = `<b>Bad Request</b>`;
+          break;
+        case 401: // if unauthorized
+          content.innerHTML = `<b>Unauthorized</b>`
+          break; 
+        case 403: // if forbidden
+          content.innerHTML = `<b>Forbidden</b>`
+          break;
+        case 500: // if internal error
+          content.innerHTML = `<b>Internal Error</b>`
+          break;
+        case 501: // if not implemented
+          content.innerHTML = `<b>Not Implemented</b>`
+          break;
+        case 404: // if not found
+          content.innerHTML = `<b>Resource Not Found</b>`;
+          break;
+        default: //any other status
+          content.innerHTML = `Error code not implemented by client.`;
+          break;
+      }
+
+      // Determining whether JSON or XML should be output.
+      if(type === 'application/json') {
+        const object = JSON.parse(xhr.response);
+        content.innerHTML = `<br><p>${object.message}</p>`;
+      }
+      else if (type === 'text/xml') {
+        content.innerHTML += xhr.response.querySelector('message').textcontent;
+        console.log(xhr.response);
+      }
+    }
+
+    // Sending a request to the user.
+    const requestUpdate = (url, type) => {
+      // Creating a new AJAX request (this process is asynchronous).
+      const xhr = new XMLHttpRequest();
+      // Setting up connect using the GET method and url.
+      xhr.open("GET", url);
+      // Set accept header in request to the user's chosen type (application/json or text/xml).
+      xhr.setRequestHeader('Accept', type);
+
+      // Set onload to parse the request.
+      xhr.onload = () => handleResponse(xhr);
+      
+      // Send the ajax request.
+      xhr.send();
+    };
+
+    // Initializing.
+    const init = () => {
+      // Grabbing the 'send' button.
+      const buttonSend = document.querySelector('#send');
+      
+      // Function to handle the request.
+      const requestButton = () => {
+        // Grabbing the values needed to show the user the correct message and format.
+        const url = document.querySelector('#page').value;
+        const type = document.querySelector('#type').value;
+        console.log(type);
+        
+        // Requesting an update.
+        requestUpdate(url, type);
+      }    
+
+      // Adding an event listener to the button.
+      buttonSend.addEventListener('click', requestButton);
+    };
+
+    // Running init when the window loads.
+    window.onload = init;
 
   </script>
 </head>
